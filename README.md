@@ -4,8 +4,6 @@ AudioMind turns community calls, conference conversations, office hours, and cus
 
 It is built for developers, DevRel teams, and community builders who want to mine useful signal from conversations without manually taking notes during every call.
 
-## What You Can Demo
-
 With AudioMind, a developer can upload an audio file and get:
 
 - a transcript with speaker labels
@@ -95,13 +93,7 @@ Recommended for demos:
 
 ## Quickstart: Run Locally
 
-Clone the repo, enter the project folder, and run setup:
-
-```bash
-git clone <your-repo-url>
-cd <repo-folder>
-make setup
-```
+Clone the repo, enter the project folder.
 
 `make setup` does the local setup for you:
 
