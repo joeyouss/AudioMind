@@ -1,4 +1,4 @@
-<DocImage src="static/AudioMind.png" />
+![AudioMind](static/AudioMind.png)
 
 AudioMind turns community calls, conference conversations, office hours, and customer chats into speaker-aware transcripts, pain points, content ideas, and follow-up actions.
 
