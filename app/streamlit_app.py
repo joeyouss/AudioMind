@@ -41,6 +41,11 @@ st.set_page_config(
     layout="wide",
 )
 
+if "analysis_output" not in st.session_state:
+    st.session_state.analysis_output = None
+if "upload_signature" not in st.session_state:
+    st.session_state.upload_signature = None
+
 
 st.markdown(
     """
@@ -312,6 +317,11 @@ with st.sidebar:
 
 uploaded = st.file_uploader("Upload MP3, WAV, M4A, FLAC, AAC, OGG, or MP4 audio", type=["mp3", "wav", "m4a", "mp4", "aac", "flac", "ogg"])
 
+current_upload_signature = (uploaded.name, uploaded.size) if uploaded else None
+if current_upload_signature != st.session_state.upload_signature:
+    st.session_state.upload_signature = current_upload_signature
+    st.session_state.analysis_output = None
+
 if uploaded:
     st.audio(uploaded)
 
@@ -327,6 +337,8 @@ with right:
 
 
 if run and uploaded:
+    st.session_state.analysis_output = None
+
     if use_precision and not pyannote_api_key:
         st.error("Add a pyannoteAI API key in the sidebar before running Precision-2.")
         st.stop()
@@ -421,9 +433,22 @@ if run and uploaded:
             st.exception(exc)
             st.stop()
 
-    transcript_md = transcript_to_markdown(result["turns"])
-    transcript_json = to_pretty_json(result["turns"])
-    insights_json = to_pretty_json(insights)
+    st.session_state.analysis_output = {
+        "result": result,
+        "insights": insights,
+        "transcript_md": transcript_to_markdown(result["turns"]),
+        "transcript_json": to_pretty_json(result["turns"]),
+        "insights_json": to_pretty_json(insights),
+    }
+
+analysis_output = st.session_state.analysis_output
+
+if analysis_output:
+    result = analysis_output["result"]
+    insights = analysis_output["insights"]
+    transcript_md = analysis_output["transcript_md"]
+    transcript_json = analysis_output["transcript_json"]
+    insights_json = analysis_output["insights_json"]
 
     metric_cols = st.columns(4)
     metric_cols[0].metric("Speakers", len({turn["speaker"] for turn in result["turns"]}))

@@ -24,28 +24,7 @@ Transcription answers: **what was said?**
 
 Together, they let AudioMind connect an idea to the right speaker and timestamp. That makes the output much more useful than a plain transcript.
 
-## How It Works
-
-AudioMind supports two modes:
-
-### 1. Precision-2 Hosted Mode
-
-This is the recommended demo path.
-
-Precision-2 runs through the pyannoteAI API and returns diarization plus transcription in one job. AudioMind uses the returned `turnLevelTranscription`, so you do not need to run Whisper separately or write custom word-to-speaker alignment code.
-
-Use this mode when you want the simplest, cleanest developer demo.
-
-### 2. Local pyannote + Whisper Mode
-
-This mode shows the internals:
-
-1. `pyannote.audio` detects speaker turns.
-2. `faster-whisper` transcribes the audio with word timestamps.
-3. AudioMind aligns words to speaker turns.
-4. Gemma analyzes the transcript.
-
-Use this mode when you want to teach how the pipeline works under the hood.
+To directly see the Notebook with all the code and explanations, click [here](https://colab.research.google.com/drive/1r5jaUenFUPvNgnpS4Km8k69mleEb7Vz5?usp=sharing).
 
 ## Project Layout
 
@@ -91,26 +70,56 @@ Recommended for demos:
 - use Precision-2 for the smoothest CPU-only demo
 - use `tiny` or `base` Whisper if running the local mode on CPU
 
-## Quickstart: Run Locally
+## Reproducible Local Run
 
-Clone the repo, enter the project folder.
+These steps are the intended fresh-machine path for running AudioMind locally.
 
-`make setup` does the local setup for you:
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/joeyouss/AudioMind.git
+```
+
+### 2. Install system prerequisites
+
+AudioMind needs Python, `ffmpeg`, and Ollama.
+
+On macOS with Homebrew:
+
+```bash
+brew install python@3.11 ffmpeg ollama
+```
+
+### 3. Run the project setup
+
+```bash
+make setup
+```
+
+This command:
 
 - creates `app/.venv`
-- installs Python dependencies from `app/requirements.txt`
-- creates `app/.env` from `app/.env.example` if it does not exist
-- checks `ffmpeg`
-- starts Ollama if needed
-- pulls the local Gemma model from `OLLAMA_MODEL`
+- installs all Python packages from `app/requirements.txt`
+- creates `app/.env` from `app/.env.example`
+- checks whether `ffmpeg` is available
+- starts the Ollama server if it is not already running
+- downloads the local Gemma model
 
-Now edit your local environment file:
+By default, the app uses:
+
+```bash
+OLLAMA_MODEL=gemma3:1b
+```
+
+### 4. Add your API key
+
+Open the environment file:
 
 ```bash
 open app/.env
 ```
 
-For the recommended Precision-2 demo, set at least:
+For the recommended demo path, add your pyannoteAI key:
 
 ```bash
 PYANNOTE_API_KEY=your_pyannoteai_key_here
@@ -119,13 +128,15 @@ OLLAMA_URL=http://localhost:11434
 OLLAMA_MODEL=gemma3:1b
 ```
 
-If you also want to try local pyannote + Whisper mode, add:
+You cannot skip `PYANNOTE_API_KEY` for Precision-2 hosted mode because pyannoteAI needs to authenticate the API request.
+
+Only add `HF_TOKEN` if you want to try the local pyannote + Whisper mode:
 
 ```bash
 HF_TOKEN=hf_your_read_token_here
 ```
 
-Start the app:
+### 5. Start AudioMind
 
 ```bash
 make run
@@ -139,18 +150,34 @@ http://localhost:8501
 
 Upload an audio file, keep `Precision-2 hosted` selected, and click **Analyze conversation**.
 
-### If Ollama Is Not Running
+### 6. If Gemma/Ollama Does Not Connect
 
-`make setup` tries to start Ollama automatically. If Gemma insights do not connect, run this in a separate terminal:
+Start Ollama manually:
 
 ```bash
 ollama serve
 ```
 
-Then, in another terminal:
+In another terminal, pull Gemma and restart the app:
 
 ```bash
 ollama pull gemma3:1b
+make run
+```
+
+### 7. Clean Restart
+
+If the app gets into a bad local state, stop it with `Control-C` and run:
+
+```bash
+make run
+```
+
+If dependencies are broken, rebuild the local environment:
+
+```bash
+rm -rf app/.venv
+make setup
 make run
 ```
 
@@ -245,38 +272,3 @@ streamlit run streamlit_app.py
 - Long calls should be tested after the workflow works on a short sample.
 - For voiceprints, use a clean single-speaker sample.
 - If local pyannote fails on an MP3, convert it to a 16 kHz mono WAV first.
-
-## Troubleshooting
-
-`pyannoteAI API key is missing`
-: Add `PYANNOTE_API_KEY` to `app/.env` or paste it into the sidebar.
-
-`pyannoteAI key check failed`
-: Confirm the key is valid and that your network can reach `https://api.pyannote.ai`.
-
-`SSL certificate verify failed`
-: For local demos, keep `PYANNOTE_VERIFY_SSL=false`. For production, fix your local certificate store and turn verification back on.
-
-`HF_TOKEN is missing`
-: Add `HF_TOKEN` before using local pyannote + Whisper mode.
-
-`401`, `403`, or gated model errors`
-: Accept the Hugging Face model terms with the same account that owns your token.
-
-`Ollama is not reachable`
-: Start Ollama with `ollama serve`.
-
-`Gemma model is not installed`
-: Run `ollama pull gemma3:1b`.
-
-`pip: command not found` in Colab
-: Put each `!pip` command on its own line. Do not combine commands into one notebook line.
-
-`CPU is slow`
-: Use Precision-2 hosted mode, or choose `tiny` / `base` for local Whisper.
-
-## Security
-
-Never commit API keys, `.env` files, raw private calls, or generated transcripts that contain sensitive information.
-
-`PYANNOTE_VERIFY_SSL=false` is included for local demo environments that have certificate issues. For production or shared deployments, use valid certificates and set SSL verification to true.
