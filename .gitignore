@@ -1,0 +1,14 @@
+.env
+.venv/
+app/.venv/
+app/.cache/
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+transcript.md
+transcript.json
+insights.json
+*.16khz.mono.wav
+
+.DS_Store

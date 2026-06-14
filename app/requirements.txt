@@ -1,0 +1,9 @@
+streamlit>=1.35
+python-dotenv>=1.0
+pyannote.audio==4.0.4
+faster-whisper==1.0.3
+transformers==4.44.2
+requests>=2.31
+certifi>=2024.2.2
+torch>=2.2
+matplotlib>=3.10,<3.11
